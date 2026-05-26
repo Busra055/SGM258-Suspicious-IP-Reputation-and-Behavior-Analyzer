@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+  
+<title>Suspicious IP Reputation and Behavior Analyzer</title>
+  
+<style>
+    body { font-family: Arial, sans-serif; margin: 30px; background: #f5f5f5; }
+    h2 { color: navy; }
+    input { padding: 5px; font-size: 14px; width: 220px; }
+    button { padding: 5px 14px; font-size: 14px; background: navy; color: white; border: none; cursor: pointer; }
+    button:hover { background: blue; }
+    #result { margin-top: 16px; background: white; border: 1px solid gray; padding: 16px; display: none; max-width: 420px; }
+    td { padding: 4px 10px 4px 0; font-size: 14px; }
+    td:first-child { color: gray; width: 140px; }
+    .HIGH   { color: red;    font-weight: bold; }
+    .MEDIUM { color: orange; font-weight: bold; }
+    .LOW    { color: green;  font-weight: bold; }
+</style>
+
+</head>
+
+<!-- ------------------------------------------------------------------------------------------------------------------------------------------ -->
+
+<body>
+
+<h2>Suspicious IP Reputation and Behavior Analyzer</h2>
+
+<input type="text" id="ip" placeholder="1.1.1.1">
+
+<button onclick="analyze()">Analyze the IP</button>
+
+<div id="result">
+  <table>
+    <tr><td>IP Address</td><td id="ipVal"></td></tr>
+    <tr><td>Country</td><td id="countryVal"></td></tr>
+    <tr><td>City</td><td id="cityVal"></td></tr>
+    <tr><td>ISP</td><td id="ispVal"></td></tr>
+    <tr><td>Organization</td><td id="orgVal"></td></tr>
+    <tr><td>Hostname</td><td id="hostVal"></td></tr>
+    <tr><td>Proxy / VPN</td><td id="proxyVal"></td></tr>
+    <tr><td>Hosting IP</td><td id="hostingVal"></td></tr>
+    <tr><td>Mobile Network</td><td id="mobileVal"></td></tr>
+    <tr><td>Risk Score</td><td id="scoreVal"></td></tr>
+    <tr><td>Risk Level</td><td id="levelVal"></td></tr>
+  </table>
+</div>
+
+<!-- ------------------------------------------------------------------------------------------------------------------------------------------ -->
+
+<div style="display:flex; gap:16px; margin-top:30px;">
+
+<img src="https://www.cloudbric.com/wp-content/uploads/2023/10/IP-reputation-service-lookup-e1512437681827.png" alt="IP Reputation Lookup" style="width:48%;">
+
+<img src="https://www.catonetworks.com/wp-content/uploads/2024/05/malicious-IP-1200x794-1.png" alt="Malicious IP" style="width:48%;">
+
+</div>
+
+<!-- ------------------------------------------------------------------------------------------------------------------------------------------ -->
+
+<script>
+
+async function analyze() {
+  var ip = document.getElementById('ip').value.trim();
+  if (!ip) return;
+
+  try {
+    var response = await fetch('http://ip-api.com/json/' + ip + '?fields=status,country,countryCode,city,isp,org,reverse,proxy,hosting,mobile,query');
+    var data = await response.json();
+    if (data.status === 'fail') return;
+
+    var score = 0;
+    if (data.proxy)    score += 40;
+    if (data.hosting)  score += 30;
+    if (data.mobile)   score += 15;
+    if (!data.reverse) score += 15;
+    if (score > 100)   score = 100;
+
+    var level = score >= 60 ? 'HIGH' : score >= 25 ? 'MEDIUM' : 'LOW';
+
+    document.getElementById('ipVal').textContent      = data.query;
+    document.getElementById('countryVal').textContent = data.country  || '—';
+    document.getElementById('cityVal').textContent    = data.city     || '—';
+    document.getElementById('ispVal').textContent     = data.isp      || '—';
+    document.getElementById('orgVal').textContent     = data.org      || '—';
+    document.getElementById('hostVal').textContent    = data.reverse  || '—';
+    document.getElementById('proxyVal').textContent   = data.proxy    ? 'Yes' : 'No';
+    document.getElementById('hostingVal').textContent = data.hosting  ? 'Yes' : 'No';
+    document.getElementById('mobileVal').textContent  = data.mobile   ? 'Yes' : 'No';
+    document.getElementById('scoreVal').textContent   = score + ' / 100';
+
+    var levelBox = document.getElementById('levelVal');
+    levelBox.textContent = level;
+    levelBox.className = level;
+
+    document.getElementById('result').style.display = 'block';
+  } catch(e) {}
+}
+
+</script>
+
+<!-- ------------------------------------------------------------------------------------------------------------------------------------------ -->
+
+</body>
+
+</html>
