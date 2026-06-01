@@ -1,13 +1,16 @@
+
 <!DOCTYPE html>
+
+<!-- Büşra -->
 
 <html>
 
 <head>
 
 <meta charset="UTF-8">
-  
+
 <title>Suspicious IP Reputation and Behavior Analyzer</title>
-  
+
 <style>
     body { font-family: Arial, sans-serif; margin: 30px; background: #f5f5f5; }
     h2 { color: navy; }
@@ -15,6 +18,7 @@
     button { padding: 5px 14px; font-size: 14px; background: navy; color: white; border: none; cursor: pointer; }
     button:hover { background: blue; }
     #result { margin-top: 16px; background: white; border: 1px solid gray; padding: 16px; display: none; max-width: 420px; }
+    #errorMsg { color: red; font-size: 13px; margin-top: 8px; display: none; }
     td { padding: 4px 10px 4px 0; font-size: 14px; }
     td:first-child { color: gray; width: 140px; }
     .HIGH   { color: red;    font-weight: bold; }
@@ -24,15 +28,16 @@
 
 </head>
 
-<!-- ------------------------------------------------------------------------------------------------------------------------------------------ -->
+<!-- Büşra -->
 
 <body>
 
 <h2>Suspicious IP Reputation and Behavior Analyzer</h2>
 
 <input type="text" id="ip" placeholder="1.1.1.1">
-
 <button onclick="analyze()">Analyze the IP</button>
+
+<div id="errorMsg"></div>
 
 <div id="result">
   <table>
@@ -50,60 +55,79 @@
   </table>
 </div>
 
-<!-- ------------------------------------------------------------------------------------------------------------------------------------------ -->
-
 <div style="display:flex; gap:16px; margin-top:30px;">
-
 <img src="https://www.cloudbric.com/wp-content/uploads/2023/10/IP-reputation-service-lookup-e1512437681827.png" alt="IP Reputation Lookup" style="width:48%;">
-
 <img src="https://www.catonetworks.com/wp-content/uploads/2024/05/malicious-IP-1200x794-1.png" alt="Malicious IP" style="width:48%;">
-
 </div>
-
-<!-- ------------------------------------------------------------------------------------------------------------------------------------------ -->
 
 <script>
 
 async function analyze() {
-  var ip = document.getElementById('ip').value.trim();
-  if (!ip) return;
+
+  var ipInput = document.getElementById('ip').value.trim();
+  var errorBox = document.getElementById('errorMsg');
+
+  errorBox.style.display = 'none';
+  errorBox.textContent = '';
+  document.getElementById('result').style.display = 'none';
+
+  // Büşra
+  var ipFormat = /^(\d{1,3}\.){3}\d{1,3}$/;
+  if (!ipInput || !ipFormat.test(ipInput)) {
+    errorBox.textContent = 'Please enter a valid IP address.';
+    errorBox.style.display = 'block';
+    return;
+  }
 
   try {
-    var response = await fetch('http://ip-api.com/json/' + ip + '?fields=status,country,countryCode,city,isp,org,reverse,proxy,hosting,mobile,query');
-    var data = await response.json();
-    if (data.status === 'fail') return;
 
-    var score = 0;
-    if (data.proxy)    score += 40;
-    if (data.hosting)  score += 30;
-    if (data.mobile)   score += 15;
-    if (!data.reverse) score += 15;
-    if (score > 100)   score = 100;
+    // Asaf
+    var response = await fetch('http://ip-api.com/json/' + ipInput + '?fields=status,country,countryCode,city,isp,org,reverse,proxy,hosting,mobile,query');
+    var result = await response.json();
 
-    var level = score >= 60 ? 'HIGH' : score >= 25 ? 'MEDIUM' : 'LOW';
+    if (result.status === 'fail') {
+      errorBox.textContent = 'Could not retrieve data for this IP address.';
+      errorBox.style.display = 'block';
+      return;
+    }
 
-    document.getElementById('ipVal').textContent      = data.query;
-    document.getElementById('countryVal').textContent = data.country  || '—';
-    document.getElementById('cityVal').textContent    = data.city     || '—';
-    document.getElementById('ispVal').textContent     = data.isp      || '—';
-    document.getElementById('orgVal').textContent     = data.org      || '—';
-    document.getElementById('hostVal').textContent    = data.reverse  || '—';
-    document.getElementById('proxyVal').textContent   = data.proxy    ? 'Yes' : 'No';
-    document.getElementById('hostingVal').textContent = data.hosting  ? 'Yes' : 'No';
-    document.getElementById('mobileVal').textContent  = data.mobile   ? 'Yes' : 'No';
-    document.getElementById('scoreVal').textContent   = score + ' / 100';
+    // Asaf
+    var riskScore = 0;
+    if (result.proxy)    riskScore += 40;
+    if (result.hosting)  riskScore += 30;
+    if (result.mobile)   riskScore += 15;
+    if (!result.reverse) riskScore += 15;
+    if (riskScore > 100) riskScore = 100;
+
+    var riskLevel = riskScore >= 60 ? 'HIGH' : riskScore >= 25 ? 'MEDIUM' : 'LOW';
+
+    // Büşra
+    document.getElementById('ipVal').textContent      = result.query;
+    document.getElementById('countryVal').textContent = result.country  || '—';
+    document.getElementById('cityVal').textContent    = result.city     || '—';
+    document.getElementById('ispVal').textContent     = result.isp      || '—';
+    document.getElementById('orgVal').textContent     = result.org      || '—';
+    document.getElementById('hostVal').textContent    = result.reverse  || '—';
+    document.getElementById('proxyVal').textContent   = result.proxy    ? 'Yes' : 'No';
+    document.getElementById('hostingVal').textContent = result.hosting  ? 'Yes' : 'No';
+    document.getElementById('mobileVal').textContent  = result.mobile   ? 'Yes' : 'No';
+    document.getElementById('scoreVal').textContent   = riskScore + ' / 100';
 
     var levelBox = document.getElementById('levelVal');
-    levelBox.textContent = level;
-    levelBox.className = level;
+    levelBox.textContent = riskLevel;
+    levelBox.className = riskLevel;
 
     document.getElementById('result').style.display = 'block';
-  } catch(e) {}
+
+  // Asaf
+  } catch(e) {
+    errorBox.textContent = 'Something went wrong. Please check your connection.';
+    errorBox.style.display = 'block';
+  }
+
 }
 
 </script>
-
-<!-- ------------------------------------------------------------------------------------------------------------------------------------------ -->
 
 </body>
 
